@@ -5,6 +5,7 @@
 #include <sys/ioctl.h>
          #define FOV 30
       #define ZOOM 100
+     #define SPEED 20000
    float v[5][3]={{0,2,0},
 {-2,-2,2},{2,-2,2},
  {2,-2,-2},{-2,-2,-2}};
@@ -59,4 +60,4 @@ j<w;++j)putchar(s[i][j]);putchar
 ('\n');}}int main(){float ax=0,ay=0,
 az=0;int w,h;while(1){gts(&w,&h);rf(
  ax,ay,az,w,h);ax+=0.04;ay+=0.05;az+=
-0.03;usleep(50000);}}
+0.03;usleep(SPEED);}}
