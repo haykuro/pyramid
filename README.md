@@ -2,5 +2,4 @@
 
 Renders a pyramid similar to donut.c
 
-![image](https://github.com/user-attachments/assets/59034dd8-5d60-4ace-975d-2ea176e18a99)
-
+![pyramid](https://github.com/user-attachments/assets/9e51b48c-31a6-47bd-be10-bbeea9497039)
