@@ -3,124 +3,60 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
-#include <termios.h>
-
-#define FOV 30  // Increase the field of view slightly
-#define ZOOM 100  // Adjusted zoom for better projection
-
-// Larger coordinates for the pyramid
-float vertices[5][3] = {
-    {0, 2, 0},     // Top point
-    {-2, -2, 2},   // Base 1
-    {2, -2, 2},    // Base 2
-    {2, -2, -2},   // Base 3
-    {-2, -2, -2}   // Base 4
-};
-
-int edges[8][2] = {
-    {0, 1}, {0, 2}, {0, 3}, {0, 4}, // Top to base points
-    {1, 2}, {2, 3}, {3, 4}, {4, 1}  // Base edges
-};
-
-// Function to get the terminal width and height
-void get_terminal_size(int *width, int *height) {
-    struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);  // Get the terminal size
-    *width = w.ws_col;
-    *height = w.ws_row;
-}
-
-// Function to rotate a point
-void rotate(float x, float y, float z, float* new_x, float* new_y, float* new_z, float angleX, float angleY, float angleZ) {
-    float cosa = cos(angleX), sina = sin(angleX);
-    float cosb = cos(angleY), sinb = sin(angleY);
-    float cosc = cos(angleZ), sinc = sin(angleZ);
-    
-    float newx = x, newy = y, newz = z;
-    
-    float temp_y = cosa * newy - sina * newz;
-    newz = sina * newy + cosa * newz;
-    newy = temp_y;
-
-    float temp_x = cosb * newx + sinb * newz;
-    newz = -sinb * newx + cosb * newz;
-    newx = temp_x;
-
-    temp_x = cosc * newx - sinc * newy;
-    newy = sinc * newx + cosc * newy;
-    newx = temp_x;
-
-    *new_x = newx;
-    *new_y = newy;
-    *new_z = newz;
-}
-
-// Project 3D points onto 2D screen
-void project(float x, float y, float z, int* screen_x, int* screen_y, int screen_width, int screen_height) {
-    *screen_x = (int)(screen_width / 2 + ZOOM * x / (z + FOV));
-    *screen_y = (int)(screen_height / 2 - ZOOM * y / (z + FOV));
-}
-
-// Main rendering function
-void render_frame(float angleX, float angleY, float angleZ, int screen_width, int screen_height) {
-    char screen[screen_height][screen_width];
-    for (int i = 0; i < screen_height; ++i)
-        for (int j = 0; j < screen_width; ++j)
-            screen[i][j] = ' ';
-
-    for (int i = 0; i < 8; ++i) {
-        float x1 = vertices[edges[i][0]][0];
-        float y1 = vertices[edges[i][0]][1];
-        float z1 = vertices[edges[i][0]][2];
-        float x2 = vertices[edges[i][1]][0];
-        float y2 = vertices[edges[i][1]][1];
-        float z2 = vertices[edges[i][1]][2];
-
-        float new_x1, new_y1, new_z1;
-        float new_x2, new_y2, new_z2;
-
-        rotate(x1, y1, z1, &new_x1, &new_y1, &new_z1, angleX, angleY, angleZ);
-        rotate(x2, y2, z2, &new_x2, &new_y2, &new_z2, angleX, angleY, angleZ);
-
-        int screen_x1, screen_y1, screen_x2, screen_y2;
-
-        project(new_x1, new_y1, new_z1, &screen_x1, &screen_y1, screen_width, screen_height);
-        project(new_x2, new_y2, new_z2, &screen_x2, &screen_y2, screen_width, screen_height);
-
-        int dx = abs(screen_x2 - screen_x1), sx = screen_x1 < screen_x2 ? 1 : -1;
-        int dy = -abs(screen_y2 - screen_y1), sy = screen_y1 < screen_y2 ? 1 : -1; 
-        int err = dx + dy, e2;
-
-        while (1) {
-            if (screen_x1 >= 0 && screen_x1 < screen_width && screen_y1 >= 0 && screen_y1 < screen_height)
-                screen[screen_y1][screen_x1] = '#';
-            if (screen_x1 == screen_x2 && screen_y1 == screen_y2) break;
-            e2 = 2 * err;
-            if (e2 >= dy) { err += dy; screen_x1 += sx; }
-            if (e2 <= dx) { err += dx; screen_y1 += sy; }
-        }
-    }
-
-    for (int i = 0; i < screen_height; ++i) {
-        for (int j = 0; j < screen_width; ++j)
-            putchar(screen[i][j]);
-        putchar('\n');
-    }
-}
-
-int main() {
-    float angleX = 0, angleY = 0, angleZ = 0;
-    int screen_width, screen_height;
-
-    while (1) {
-        get_terminal_size(&screen_width, &screen_height);  // Get the current terminal size
-        render_frame(angleX, angleY, angleZ, screen_width, screen_height);
-        angleX += 0.04;
-        angleY += 0.05;
-        angleZ += 0.03;
-        usleep(50000);  // Slow down the rotation for better visualization
-        printf("\033[H\033[J");  // Clear the screen for animation
-    }
-
-    return 0;
-}
+         #define FOV 30
+      #define ZOOM 100
+   float v[5][3]={{0,2,0},
+{-2,-2,2},{2,-2,2},
+ {2,-2,-2},{-2,-2,-2}};
+int e[8][2]={{0,1},{0,2},
+ {0,3},{0,4},{1,2},
+  {2,3},{3,4},{4,1}};
+  void gts(int*w,int*h)
+   {struct winsize ws;
+ ioctl(STDOUT_FILENO,
+TIOCGWINSZ,&ws);*w=ws.ws_col;
+        *h=ws.ws_row;}
+     void r(float x,float y,
+    float z,float*a,float*b,
+   float*c,float ax,float ay,
+  float az){float cosa=cos(ax)
+   ,sina=sin(ax),cosb=cos(ay),
+   sinb=sin(ay),cosc=cos(az),
+sinc=sin(az);float nx=x,ny=y,
+ nz=z,ty=cosa*ny-sina*nz;nz=
+sina*ny+cosa*nz;ny=ty;float tx=
+ cosb*nx+sinb*nz;nz=-sinb*nx+
+ cosb*nz;nx=tx;tx=cosc*nx-sinc
+*ny;ny=sinc*nx+cosc*ny;nx=tx;
+*a=nx;*b=ny;*c=nz;}void p(
+float x,float y,float z,int*scx,
+ int*scy,int w,int h){*scx=(int)
+(w/2+ZOOM*x/(z+FOV));*scy=(int)
+(h/2-ZOOM*y/(z+FOV));}void rf(
+ float ax,float ay,float az,int w,
+  int h){char s[h][w];for(int i=0;
+ i<h;++i)for(int j=0;j<w;++j)
+ s[i][j]=' ';for(int i=0;i<8;++i)
+ {float x1=v[e[i][0]][0],y1=v[
+ e[i][0]][1],z1=v[e[i][0]][2],
+x2=v[e[i][1]][0],y2=v[e[i][1]][1],
+z2=v[e[i][1]][2];float nx1,ny1,
+ nz1,nx2,ny2,nz2;r(x1,y1,z1,&nx1
+,&ny1,&nz1,ax,ay,az);r(x2,y2,z2,
+&nx2,&ny2,&nz2,ax,ay,az);int scx1,
+scy1,scx2,scy2;p(nx1,ny1,nz1,&scx1,
+&scy1,w,h);p(nx2,ny2,nz2,&scx2,&scy2,
+w,h);int dx=abs(scx2-scx1),sx=scx1<
+scx2?1:-1,dy=-abs(scy2-scy1),sy=scy1<
+scy2?1:-1,err=dx+dy,e2;while(1){if(
+scx1>=0&&scx1<w&&scy1>=0&&scy1<h)
+ s[scy1][scx1]='#';if(scx1==scx2&&
+ scy1==scy2)break;e2=2*err;if(e2>=
+dy){err+=dy;scx1+=sx;}if(e2<=dx){
+err+=dx;scy1+=sy;}}}printf("\033[H");
+for(int i=0;i<h;++i){for(int j=0;
+j<w;++j)putchar(s[i][j]);putchar
+('\n');}}int main(){float ax=0,ay=0,
+az=0;int w,h;while(1){gts(&w,&h);rf(
+ ax,ay,az,w,h);ax+=0.04;ay+=0.05;az+=
+0.03;usleep(50000);}}
